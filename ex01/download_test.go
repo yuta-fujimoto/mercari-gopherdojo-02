@@ -1,4 +1,4 @@
-package download
+package main
 
 import "testing"
 
@@ -13,10 +13,10 @@ func TestRun(t *testing.T) {
 			name: "normal",
 			url: "http://example.com",
 		},
-		{
-			name: "large",
-			url: "https://releases.ubuntu.com/focal/ubuntu-20.04.4-live-server-amd64.iso",
-		},
+		// {
+		// 	name: "large",
+		// 	url: "https://releases.ubuntu.com/focal/ubuntu-20.04.4-live-server-amd64.iso",
+		// },
 	}
 	for _, td := range cases {
 		td := td

@@ -1,6 +1,7 @@
 *
 
-!*.go
+!*/
+!cmd/*
 !go.mod
 !go.sum
 !.gitignore
