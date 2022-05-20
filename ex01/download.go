@@ -1,23 +1,19 @@
-package main
+package download
 
 import (
 	"context"
 	"fmt"
 	"io/ioutil"
-
-	// "errors"
 	"io"
 	"net/http"
 	"os"
-
-	// "fmt"
 	"strconv"
 
 	"golang.org/x/sync/errgroup"
 )
 
 func download(info *contentInfo, client *http.Client) ([]*os.File, error) {
-	saveFiles := make([]*os.File, info.RoutineCnt) 
+	saveFiles := make([]*os.File, info.RoutineCnt)
 	for i := int64(0); i < info.RoutineCnt; i++ {
 		var err error
 		saveFiles[i], err = ioutil.TempFile("", "download")
@@ -37,15 +33,13 @@ func download(info *contentInfo, client *http.Client) ([]*os.File, error) {
 		i := i
 		output := saveFiles[i]
 		defer output.Close()
-		
+
 		eg.Go(func() error {
-			
-			fmt.Printf("%#v\n", i)
 			req, err := http.NewRequest("GET", info.Url, nil)
 			if err != nil {
 				return fmt.Errorf("create new request: %w", err)
 			}
-			
+
 			req = req.WithContext(ctx)
 			range_header := "bytes=" + strconv.FormatInt(min, 10) + "-" + strconv.FormatInt(max-1, 10)
 			req.Header.Add("Range", range_header)
@@ -55,8 +49,7 @@ func download(info *contentInfo, client *http.Client) ([]*os.File, error) {
 			if err != nil {
 				return fmt.Errorf("send http request: %w", err)
 			}
-			fmt.Printf("%#v %d\n", range_header, i)
-			
+
 			defer resp.Body.Close()
 
 			if _, err = io.Copy(output, resp.Body); err != nil {

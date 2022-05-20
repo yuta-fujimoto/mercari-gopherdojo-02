@@ -1,4 +1,4 @@
-package main
+package download
 
 import (
 	"flag"
@@ -12,7 +12,7 @@ import (
 )
 
 
-func run(fn string, routineCnt int64) error {
+func Run(fn string, routineCnt int64) error {
 	client := &http.Client{}
 
 	info, err := getContentInfo(client, fn, routineCnt)
@@ -22,11 +22,8 @@ func run(fn string, routineCnt int64) error {
 	
 	saveFiles, err := download(info, client)
 	defer func() {
-		for i := 0; i < len(saveFiles); i++ {
-			// cat, _ := exec.Command("cat", createSubfilename(i)).Output()
-			// fmt.Printf("%#v\n", string(cat))
-
-			os.Remove(saveFiles[i].Name())
+		for _, sf := range saveFiles {
+			os.Remove(sf.Name())
 		}
 	}()
 	if  err != nil {
@@ -53,7 +50,6 @@ func run(fn string, routineCnt int64) error {
 }
 
 func main() {
-	routineCnt := flag.Int64("p", 2, "number of routines")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) != 1 {
@@ -61,7 +57,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := run(args[0], *routineCnt); err != nil {
+	if err := Run(args[0], 2); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}

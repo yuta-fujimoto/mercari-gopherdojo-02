@@ -1,9 +1,8 @@
-package main
+package download
 
 import (
 	"errors"
 	"net/http"
-	"fmt"
 )
 
 type contentInfo struct {
@@ -28,7 +27,6 @@ func getContentInfo(client *http.Client, url string, routineCnt int64) (*content
 	if resp.ContentLength <= 0 {
 		return nil, errors.New("invalid content length")
 	}
-	fmt.Printf("%#v %d\n", resp.ContentLength, routineCnt)
 	return &contentInfo{
 		BytesPerRoutine: resp.ContentLength / routineCnt,
 		LastBytes: resp.ContentLength / routineCnt + resp.ContentLength % routineCnt,
