@@ -1,2 +1,5 @@
-download
-result
+*
+
+!*.go
+!go.mod
+!go.sum

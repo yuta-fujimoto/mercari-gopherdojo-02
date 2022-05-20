@@ -3,78 +3,66 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
-
-	// "net/http/httputil"
 	"os"
-	// "strconv"
-	"sync"
+
+	// "os/exec"
+	"path/filepath"
 )
 
+
+func run(fn string, routineCnt int64) error {
+	client := &http.Client{}
+
+	info, err := getContentInfo(client, fn, routineCnt)
+	if err != nil {
+		return err
+	}
+	
+	saveFiles, err := download(info, client)
+	defer func() {
+		for i := 0; i < len(saveFiles); i++ {
+			// cat, _ := exec.Command("cat", createSubfilename(i)).Output()
+			// fmt.Printf("%#v\n", string(cat))
+
+			os.Remove(saveFiles[i].Name())
+		}
+	}()
+	if  err != nil {
+		return err
+	}
+	
+	dstfile, err := os.OpenFile(filepath.Base(info.Url), os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	defer dstfile.Close()
+
+	for i := int64(0); i < routineCnt; i++ {
+		subfile, err := os.Open(saveFiles[i].Name())
+		if err != nil {
+			return fmt.Errorf("open temp files: %w", err)
+		}
+		defer subfile.Close()
+		if _, err = io.Copy(dstfile, subfile); err != nil {
+			return fmt.Errorf("write to dst file: %w", err)
+		}
+	}
+	return  nil
+}
+
 func main() {
-	routines := flag.Int64("p", 5, "number of routines")
+	routineCnt := flag.Int64("p", 2, "number of routines")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) != 1 {
-		fmt.Fprintf(os.Stderr, "error: invalid argument\n")
-		return
+		fmt.Fprintln(os.Stderr, "invalid argument")
+		os.Exit(1)
 	}
 
-	var wg sync.WaitGroup
-	res, err := http.Head(args[0])
-	if err != nil {
+	if err := run(args[0], *routineCnt); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
-		return
-	}
-	bytesPerRoutine := res.ContentLength / (*routines)
-	LastBytes := bytesPerRoutine + res.ContentLength%(*routines)
-	body := (make([][]byte, *routines))
-	fmt.Println("head request done", res.ContentLength)
-
-	var i int64
-	for i = 0; i < *routines; i++ {
-		wg.Add(1)
-
-		min := bytesPerRoutine * i
-		max := min + bytesPerRoutine
-		if i == *routines-1 {
-			max = min + LastBytes
-		}
-
-		go func(min int64, max int64, i int64) {
-			client := &http.Client{}
-			req, err := http.NewRequest("GET", args[0], nil)
-			if err != nil {
-				log.Fatal(err.Error())
-			}
-			// range_header := "bytes=" + strconv.FormatInt(min, 10) + "-" + strconv.FormatInt(max-1, 10)
-			// req.Header.Add("Range", range_header)
-			// fmt.Println(range_header)
-			resp, err := client.Do(req)
-			
-			if err != nil {
-				log.Fatal(err.Error())
-			}
-			defer resp.Body.Close()
-			reader, err := ioutil.ReadAll(res.Body)
-
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err.Error())
-			}
-			body[i] = reader
-			fmt.Printf("%#v\n", string(reader))
-			wg.Done()
-		}(min, max, i)
-	}
-	wg.Wait()
-	fmt.Println("dowload complete")
-	for i = 0; i < *routines; i++ {
-		err = ioutil.WriteFile("result", body[i], os.ModeDevice)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			return
-		}
+		os.Exit(1)
 	}
 }
