@@ -11,10 +11,10 @@ import (
 /*
 	send http requests to [url] and they are divided into [routineCnt] parts
 */
-func Run(url string, routineCnt int64) error {
+func Run(url string, maxRoutineCnt int64) error {
 	client := &http.Client{}
 
-	info, err := getContentInfo(client, url, routineCnt)
+	info, err := getContentInfo(client, url, maxRoutineCnt)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func Run(url string, routineCnt int64) error {
 	}
 	defer dstfile.Close()
 
-	for i := int64(0); i < routineCnt; i++ {
+	for i := int64(0); i < info.RoutineCnt; i++ {
 		subfile, err := os.Open(saveFiles[i].Name())
 		if err != nil {
 			return fmt.Errorf("open temp files: %w", err)

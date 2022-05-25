@@ -35,14 +35,15 @@ func download(info *contentInfo, client *http.Client) ([]*os.File, error) {
 		defer output.Close()
 
 		eg.Go(func() error {
-			req, err := http.NewRequest("GET", info.Url, nil)
+			req, err := http.NewRequestWithContext(ctx, "GET", info.Url, nil)
 			if err != nil {
 				return fmt.Errorf("create new request: %w", err)
 			}
 
-			req = req.WithContext(ctx)
-			range_header := "bytes=" + strconv.FormatInt(min, 10) + "-" + strconv.FormatInt(max-1, 10)
-			req.Header.Add("Range", range_header)
+			if info.RoutineCnt != 1 {
+				range_header := "bytes=" + strconv.FormatInt(min, 10) + "-" + strconv.FormatInt(max-1, 10)
+				req.Header.Add("Range", range_header)
+			}
 
 			req.Close = true
 			resp, err := client.Do(req)
@@ -52,7 +53,7 @@ func download(info *contentInfo, client *http.Client) ([]*os.File, error) {
 			defer resp.Body.Close()
 
 			// https://developer.mozilla.org/ja/docs/Web/HTTP/Status/206
-			if resp.StatusCode != http.StatusPartialContent { 
+			if resp.StatusCode != http.StatusPartialContent && resp.StatusCode != http.StatusOK { 
 				return fmt.Errorf("http status: %d", resp.StatusCode)
 			}
 

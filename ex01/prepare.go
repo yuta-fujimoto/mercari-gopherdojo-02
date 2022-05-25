@@ -27,8 +27,14 @@ func getContentInfo(client *http.Client, url string, routineCnt int64) (*content
 		return nil, err
 	}
 
+	// https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Accept-Ranges
 	if resp.Header.Get("Accept-Ranges") != "bytes" {
-		return nil, errors.New("does not support range request")
+		return &contentInfo{
+			BytesPerRoutine: resp.ContentLength,
+			LastBytes: resp.ContentLength,
+			RoutineCnt: 1,
+			Url: url,
+		} , nil
 	}
 
 	if resp.ContentLength <= 0 {

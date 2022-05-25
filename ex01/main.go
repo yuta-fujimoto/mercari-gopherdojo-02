@@ -6,6 +6,10 @@ import (
 	"os"
 )
 
+const (
+	routineCnt = 2
+)
+
 func main() {
 	flag.Parse()
 	args := flag.Args()
@@ -14,7 +18,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := Run(args[0], 2); err != nil {
+	if err := Run(args[0], routineCnt); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
