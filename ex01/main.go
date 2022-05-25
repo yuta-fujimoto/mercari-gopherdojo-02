@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	routineCnt = 2
+	routineCnt = 3
 )
 
 func main() {
