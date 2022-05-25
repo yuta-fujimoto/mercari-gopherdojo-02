@@ -22,7 +22,7 @@ func TestRun(t *testing.T) {
 		td := td
 		t.Run(td.name, func(t *testing.T) {
 			t.Parallel()
-			got := Run(td.url, 2)
+			got := Run(td.url, 3)
 			if got != nil {
 				t.Fatal(got.Error())
 			}
@@ -60,5 +60,3 @@ func TestError(t *testing.T) {
 		})
 	}
 }
-
-

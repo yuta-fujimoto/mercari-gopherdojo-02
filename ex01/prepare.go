@@ -5,6 +5,10 @@ import (
 	"net/http"
 )
 
+const (
+	noSplitBorder = 1 << 10
+)
+
 type contentInfo struct {
 	BytesPerRoutine int64
 	LastBytes int64
@@ -17,15 +21,21 @@ func getContentInfo(client *http.Client, url string, routineCnt int64) (*content
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.Header.Get("Accept-Ranges") != "bytes" {
 		return nil, errors.New("does not support range request")
 	}
+
 	if resp.ContentLength <= 0 {
 		return nil, errors.New("invalid content length")
+	}
+	if resp.ContentLength <= noSplitBorder {
+		routineCnt = 1
 	}
 	return &contentInfo{
 		BytesPerRoutine: resp.ContentLength / routineCnt,

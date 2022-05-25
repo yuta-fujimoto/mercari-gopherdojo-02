@@ -23,14 +23,14 @@ func download(info *contentInfo, client *http.Client) ([]*os.File, error) {
 		defer saveFiles[i].Close()
 	}
 
-	eg, ctx := errgroup.WithContext(context.TODO())
+	eg, ctx := errgroup.WithContext(context.Background())
 	for i := int64(0); i < info.RoutineCnt; i++ {
+		i := i
 		min := info.BytesPerRoutine * i
 		max := min + info.BytesPerRoutine
 		if i == info.RoutineCnt-1 {
 			max = min + info.LastBytes
 		}
-		i := i
 		output := saveFiles[i]
 		defer output.Close()
 
@@ -49,8 +49,12 @@ func download(info *contentInfo, client *http.Client) ([]*os.File, error) {
 			if err != nil {
 				return fmt.Errorf("send http request: %w", err)
 			}
-
 			defer resp.Body.Close()
+
+			// https://developer.mozilla.org/ja/docs/Web/HTTP/Status/206
+			if resp.StatusCode != http.StatusPartialContent { 
+				return fmt.Errorf("http status: %d", resp.StatusCode)
+			}
 
 			if _, err = io.Copy(output, resp.Body); err != nil {
 				return fmt.Errorf("copy to temp file: %w %s", err, output.Name())

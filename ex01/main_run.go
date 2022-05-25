@@ -8,10 +8,13 @@ import (
 	"path/filepath"
 )
 
-func run(fn string, routineCnt int64) error {
+/*
+	send http requests to [url] and they are divided into [routineCnt] parts
+*/
+func Run(url string, routineCnt int64) error {
 	client := &http.Client{}
 
-	info, err := getContentInfo(client, fn, routineCnt)
+	info, err := getContentInfo(client, url, routineCnt)
 	if err != nil {
 		return err
 	}
@@ -22,11 +25,12 @@ func run(fn string, routineCnt int64) error {
 			os.Remove(sf.Name())
 		}
 	}()
-	if  err != nil {
+	if err != nil {
 		return err
 	}
 
-	dstfile, err := os.OpenFile(filepath.Base(info.Url), os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	dstfile, err := os.OpenFile(filepath.Base(info.Url),
+		os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
@@ -42,5 +46,5 @@ func run(fn string, routineCnt int64) error {
 			return fmt.Errorf("write to dst file: %w", err)
 		}
 	}
-	return  nil
+	return nil
 }

@@ -1,0 +1,12 @@
+*
+
+!*/
+!ex00/go.mod
+!ex00/*.go
+!ex00/pickStr/*.go
+!ex00/pickStr/data
+
+!ex01/*.go
+!ex01/go.mod
+!ex01/go.sum
+!.gitignore
