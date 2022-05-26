@@ -13,6 +13,10 @@ func TestRun(t *testing.T) {
 			name: "normal",
 			url: "http://example.com",
 		},
+		{
+			name: "without range access",
+			url: "https://google.com",
+		},
 		// {
 		// 	name: "large",
 		// 	url: "https://releases.ubuntu.com/focal/ubuntu-20.04.4-live-server-amd64.iso",
@@ -43,10 +47,6 @@ func TestError(t *testing.T) {
 		{
 			name: "invalid url",
 			url: "https://invalid",
-		},
-		{
-			name: "does not support range request",
-			url: "https://google.com",
 		},
 	}
 	for _, td := range cases {

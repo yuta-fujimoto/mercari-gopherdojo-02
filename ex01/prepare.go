@@ -30,7 +30,7 @@ func getContentInfo(client *http.Client, url string, routineCnt int64) (*content
 
 	// https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Accept-Ranges
 	if resp.Header.Get("Accept-Ranges") != "bytes" {
-		fmt.Println("It does not support range access, send request without spliting")
+		fmt.Println("It does not support range access, send request without splitting")
 		return &contentInfo{
 			BytesPerRoutine: resp.ContentLength,
 			LastBytes: resp.ContentLength,
